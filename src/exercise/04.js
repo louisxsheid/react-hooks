@@ -2,27 +2,49 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import { useLocalStorageState } from '../../src/utils';
 
-function Board() {
-  // 🐨 squares is the state for this component. Add useState for squares
-  const [squares, setSquares] = React.useState(() => JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null));
+function Board({ squares, onClick }) {
+  function renderSquare(i) {
+    return (
+      <button className="square" onClick={() => onClick(i)}>
+        {squares[i]}
+      </button>
+    )
+  }
+  
+  return (
+    <div>
+      {/* 🐨 put the status in the div below */}
+      <div className="board-row">
+        {renderSquare(0)}
+        {renderSquare(1)}
+        {renderSquare(2)}
+      </div>
+      <div className="board-row">
+        {renderSquare(3)}
+        {renderSquare(4)}
+        {renderSquare(5)}
+      </div>
+      <div className="board-row">
+        {renderSquare(6)}
+        {renderSquare(7)}
+        {renderSquare(8)}
+      </div>
+    </div>
+  )
+}
 
-  // 🐨 We'll need the following bits of derived state:
-  // - nextValue ('X' or 'O')
-  // - winner ('X', 'O', or null)
-  // - status (`Winner: ${winner}`, `Scratch: Cat's game`, or `Next player: ${nextValue}`)
-  // 💰 I've written the calculations for you! So you can use my utilities
-  // below to create these variables
-  React.useEffect(() => {
-    window.localStorage.setItem('squares', JSON.stringify(squares));
-  }, [squares])
+function Game() {
+  const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null));
 
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue)
 
-  // This is the function your square click handler will call. `square` should
-  // be an index. So if they click the center square, this will be `4`.
+  const [moves, setMoves] = React.useState([]);
+
+
   function selectSquare(square) {
     // 🐨 first, if there's already winner or there's already a value at the
     // given square index (like someone clicked a square that's already been
@@ -48,49 +70,22 @@ function Board() {
     // 🐨 reset the squares
     // 💰 `Array(9).fill(null)` will do it!
     setSquares(Array(9).fill(null))
-  }
-
-  function renderSquare(i) {
-    return (
-      <button className="square" onClick={() => selectSquare(i)}>
-        {squares[i]}
-      </button>
-    )
+    setMoves([]);
   }
 
   return (
-    <div>
-      {/* 🐨 put the status in the div below */}
-      <div className="status">{status}</div>
-      <div className="board-row">
-        {renderSquare(0)}
-        {renderSquare(1)}
-        {renderSquare(2)}
-      </div>
-      <div className="board-row">
-        {renderSquare(3)}
-        {renderSquare(4)}
-        {renderSquare(5)}
-      </div>
-      <div className="board-row">
-        {renderSquare(6)}
-        {renderSquare(7)}
-        {renderSquare(8)}
-      </div>
+    <div className="game">
+    <div className="game-board">
+      <Board onClick={selectSquare} squares={squares} />
       <button className="restart" onClick={restart}>
         restart
       </button>
     </div>
-  )
-}
-
-function Game() {
-  return (
-    <div className="game">
-      <div className="game-board">
-        <Board />
-      </div>
+    <div className="game-info">
+      <div>{status}</div>
+      <div>{moves}</div>
     </div>
+  </div>
   )
 }
 
