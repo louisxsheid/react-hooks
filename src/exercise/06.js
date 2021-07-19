@@ -7,6 +7,7 @@ import * as React from 'react'
 // PokemonInfoFallback: the thing we show while we're loading the pokemon info
 // PokemonDataView: the stuff we use to display the pokemon info
 import {PokemonForm, fetchPokemon, PokemonInfoFallback, PokemonDataView} from '../pokemon'
+import {ErrorBoundary} from 'react-error-boundary'
 
 function PokemonInfo({pokemonName}) {
   // 🐨 Have state for the pokemon (null)
@@ -50,12 +51,7 @@ function PokemonInfo({pokemonName}) {
     } else if(status === "resolved") {
       return <PokemonDataView pokemon={pokemon} />
     } else if(status === "rejected") {
-      return (
-        <div role="alert">
-          There was an error:{' '}
-          <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-        </div>
-      )      
+      throw error;
     }
 }
 
@@ -71,7 +67,11 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary>
+        <ErrorBoundary 
+          FallbackComponent={ErrorFallback}
+          key={pokemonName}
+          resetKeys={[pokemonName]}
+        >
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
@@ -79,27 +79,33 @@ function App() {
   )
 }
 
-class ErrorBoundary extends React.Component{
-  constructor(props) {
-    super(props);
-    this.state = {
-      hasError: false
-    }
-  }
+// class ErrorBoundary extends React.Component{
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       hasError: false
+//     }
+//   }
+//   static getDerivedStateFromError(error) {
+//     return {
+//       hasError: true
+//     }
+//   }
+//   render() {
+//     if(this.state.hasError) {
+//       return <div>ERROR WITH COMPONENT</div>
+//     }
+//     return this.props.children;
+//   }
+// }
 
-  static getDerivedStateFromError(error) {
-    return {
-      hasError: true
-    }
-  }
-
-  render() {
-    if(this.state.hasError) {
-      return <div>ERROR WITH COMPONENT</div>
-    }
-    return this.props.children;
-  }
-
+function ErrorFallback({error, resetErrorBoundary}) {
+  return (
+    <div role="alert">
+      There was an error:{' '}
+      <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  )
 }
-
 export default App
